@@ -1,0 +1,11 @@
+# Gradle
+.gradle/
+
+# Java
+*.class
+
+# IDEA
+.idea/
+
+# macOS
+*.DS_Store
