@@ -2,37 +2,29 @@ package com.cjburkey.jgraph.display;
 
 import com.cjburkey.jgraph.graph.GraphComponent;
 import com.cjburkey.jgraph.graph.GraphComponentGrid;
-import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
-import javafx.geometry.Bounds;
 import javax.swing.JPanel;
 
 public class JGraphCanvas extends JPanel {
 
-    public final Graph graph = new Graph();
+    public final GraphView graph = new GraphView();
     private ArrayList<GraphComponent> components = new ArrayList<>();
-    private boolean initialized = false;
 
     public JGraphCanvas() {
         addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
-                final int START_CELL_SIZE = 100;
-                if (!initialized) {
-                    initialized = true;
-
-                    final int s = 3;
-
-                    Rectangle b = ((Component) componentEvent.getSource()).getBounds();
-                    graph.minX = -s;
-                    graph.maxX = s;
-                    graph.minY = b.getHeight() / b.getWidth() * -s;
-                    graph.maxY = b.getHeight() / b.getWidth() * s;
-                }
+                // Update the graph size to keep the aspect ratio
+                // Change the Y min/max but keep the X min/max the same
+                final Rectangle BOUNDS = getBounds();
+                graph.minY.set(BOUNDS.getHeight() / BOUNDS.getWidth() * graph.minX.get());
+                graph.maxY.set(BOUNDS.getHeight() / BOUNDS.getWidth() * graph.maxX.get());
             }
 
             @Override
@@ -45,6 +37,15 @@ public class JGraphCanvas extends JPanel {
 
             @Override
             public void componentHidden(ComponentEvent componentEvent) {
+            }
+        });
+        addMouseMotionListener(new MouseMotionListener() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
             }
         });
         components.add(new GraphComponentGrid());

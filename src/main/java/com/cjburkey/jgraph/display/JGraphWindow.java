@@ -18,18 +18,18 @@ public class JGraphWindow extends JFrame {
         setContentPane(drawPanel);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        Dimension monitorSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setSize((int) (monitorSize.getWidth() / 2), (int) (monitorSize.getHeight() / 2));
+        final Dimension MONITOR_SIZE = Toolkit.getDefaultToolkit().getScreenSize();
+        setSize((int) (MONITOR_SIZE.getWidth() * 2 / 3), (int) (MONITOR_SIZE.getHeight() * 2 / 3));
         setLocationRelativeTo(null);
 
         addWindowListener(new WindowListener() {
             @Override
-            public void windowOpened(WindowEvent windowEvent) {
+            public void windowClosing(WindowEvent windowEvent) {
+                jGraph.exit();
             }
 
             @Override
-            public void windowClosing(WindowEvent windowEvent) {
-                jGraph.exit();
+            public void windowOpened(WindowEvent windowEvent) {
             }
 
             @Override
@@ -52,6 +52,13 @@ public class JGraphWindow extends JFrame {
             public void windowDeactivated(WindowEvent windowEvent) {
             }
         });
+    }
+
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible) drawPanel.requestFocus();
+
+        super.setVisible(visible);
     }
 
     public void exit() {

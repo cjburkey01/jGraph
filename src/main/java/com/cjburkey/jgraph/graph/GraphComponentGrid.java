@@ -1,6 +1,6 @@
 package com.cjburkey.jgraph.graph;
 
-import com.cjburkey.jgraph.display.Graph;
+import com.cjburkey.jgraph.display.GraphView;
 import java.awt.Color;
 
 @SuppressWarnings("WeakerAccess")
@@ -17,45 +17,51 @@ public class GraphComponentGrid extends GraphComponent {
     public Color midLineColor = new Color(0xEEEEEE);
 
     @Override
-    public void draw(Graph graph) {
+    public void draw(GraphView graph) {
         // Background
         graph.rect(backgroundColor,
-                graph.minX, graph.minY,
-                graph.maxX - graph.minX, graph.maxY - graph.minY);
+                graph.minX.get(), graph.minY.get(),
+                graph.maxX.get() - graph.minX.get(), graph.maxY.get() - graph.minY.get());
 
-        drawAxes(midLineColor, graph, xSpacing / (midYLines + 1), ySpacing / (midYLines + 1));
+        // Inter-line lines
+        drawAxes(midLineColor, graph, xSpacing / (midXLines + 1), ySpacing / (midYLines + 1));
+
+        // Lines
         drawAxes(mainLineColor, graph, xSpacing, ySpacing);
 
         // X-Axis
         graph.line(axisLineColor,
-                graph.minX, 0.0,
-                graph.maxX, 0.0);
+                graph.minX.get(), 0.0,
+                graph.maxX.get(), 0.0);
         // Y-Axis
         graph.line(axisLineColor,
-                0.0, graph.minY,
-                0.0, graph.maxY);
+                0.0, graph.minY.get(),
+                0.0, graph.maxY.get());
     }
 
-    private void drawAxes(Color color, Graph graph, double xSpacing, double ySpacing) {
-        for (double x = 0.0d; x <= graph.maxX; x += xSpacing) {
+    private void drawAxes(Color color, GraphView graph, double xSpacing, double ySpacing) {
+        // X lines
+        for (double y = 0.0d; y <= graph.maxY.get(); y += ySpacing) {
             graph.line(color,
-                    x, graph.minY,
-                    x, graph.maxY);
+                    graph.minX.get(), y,
+                    graph.maxX.get(), y);
         }
-        for (double x = 0.0d; x >= graph.minX; x -= xSpacing) {
+        for (double y = -ySpacing; y >= graph.minY.get(); y -= ySpacing) {
             graph.line(color,
-                    x, graph.minY,
-                    x, graph.maxY);
+                    graph.minX.get(), y,
+                    graph.maxX.get(), y);
         }
-        for (double y = 0.0d; y <= graph.maxY; y += ySpacing) {
+
+        // Y lines
+        for (double x = 0.0d; x <= graph.maxX.get(); x += xSpacing) {
             graph.line(color,
-                    graph.minX, y,
-                    graph.maxX, y);
+                    x, graph.minY.get(),
+                    x, graph.maxY.get());
         }
-        for (double y = 0.0d; y >= graph.minY; y -= ySpacing) {
+        for (double x = -xSpacing; x >= graph.minX.get(); x -= xSpacing) {
             graph.line(color,
-                    graph.minX, y,
-                    graph.maxX, y);
+                    x, graph.minY.get(),
+                    x, graph.maxY.get());
         }
     }
 
