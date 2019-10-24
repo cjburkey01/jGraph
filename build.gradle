@@ -5,6 +5,7 @@ plugins {
 group 'com.cjburkey'
 version '0.1.0'
 
+project.ext.javaMainClass = 'com.cjburkey.jgraph.JGraph'
 sourceCompatibility = 1.8
 
 repositories {
@@ -12,4 +13,11 @@ repositories {
 }
 
 dependencies {
+}
+
+task runJGraph(type: JavaExec) {
+    group = "Execution"
+    description = "Compile and run JGraph"
+    classpath = sourceSets.main.runtimeClasspath
+    main = javaMainClass
 }
