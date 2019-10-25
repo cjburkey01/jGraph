@@ -22,13 +22,17 @@ public class GraphView {
     private final Property<Integer> width = new Property<>(0);
     private final Property<Integer> height = new Property<>(0);
 
-    public GraphView() {
+    public GraphView(Runnable repaint) {
         minX.listen((o, n) -> updateTransforms());
         minY.listen((o, n) -> updateTransforms());
         maxX.listen((o, n) -> updateTransforms());
         maxY.listen((o, n) -> updateTransforms());
         width.listen((o, n) -> updateTransforms());
         height.listen((o, n) -> updateTransforms());
+
+        if (repaint != null) {
+            Property.listenAll((o, n) -> repaint.run(), zoomX, zoomY, translateX, translateY);
+        }
 
         minX.set(-5.0d);
         maxX.set(5.0d);
@@ -59,8 +63,8 @@ public class GraphView {
         g.setColor(color);
         g.fillRect(transformX(x),
                 transformY(y),
-                transform(zoomX.get(), w, 0, 0),
-                transform(zoomY.get(), h, 0, 0));
+                transformW(w),
+                transformH(h));
     }
 
     public void line(Color color, double x1, double y1, double x2, double y2) {
@@ -89,12 +93,28 @@ public class GraphView {
         return transform(zoomY.get(), y, translateY.get(), height.get());
     }
 
+    public int transformW(double w) {
+        return transform(zoomX.get(), w, 0, 0);
+    }
+
+    public int transformH(double h) {
+        return transform(zoomY.get(), h, 0, 0);
+    }
+
     public double invTransformX(double x) {
         return invTransform(zoomX.get(), x, translateX.get(), width.get());
     }
 
     public double invTransformY(double y) {
         return invTransform(zoomY.get(), y, translateY.get(), height.get());
+    }
+
+    public double invTransformW(double w) {
+        return invTransform(zoomX.get(), w, 0, 0);
+    }
+
+    public double invTransformH(double h) {
+        return invTransform(zoomY.get(), h, 0, 0);
     }
 
 }

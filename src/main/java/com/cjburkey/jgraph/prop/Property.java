@@ -1,6 +1,7 @@
 package com.cjburkey.jgraph.prop;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -9,7 +10,7 @@ import java.util.function.Function;
  * @param <T> The type of the value of this property
  * @since 0.1.0
  */
-@SuppressWarnings({"UnusedReturnValue", "unused"})
+@SuppressWarnings({"UnusedReturnValue", "unused", "BooleanMethodIsAlwaysInverted", "WeakerAccess"})
 public class Property<T> {
 
     private final ArrayList<PropListener<T>> listeners = new ArrayList<>();
@@ -57,7 +58,7 @@ public class Property<T> {
      * @param newValue The new value.
      */
     public void set(T newValue) {
-        if (value == newValue || value.equals(newValue)) return;
+        if (Objects.equals(value, newValue)) return;
 
         T oldValue = this.value;
 
@@ -97,6 +98,13 @@ public class Property<T> {
     public int listen(PropListener<T> listener) {
         listeners.add(listener);
         return listeners.size() - 1;
+    }
+
+    public static void listenAll(PropListener<Object> listener, Property<?>... properties) {
+        for (Property property : properties) {
+            //noinspection unchecked
+            property.listen(listener);
+        }
     }
 
     /**

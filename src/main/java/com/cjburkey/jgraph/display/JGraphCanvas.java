@@ -2,6 +2,7 @@ package com.cjburkey.jgraph.display;
 
 import com.cjburkey.jgraph.graph.GraphComponent;
 import com.cjburkey.jgraph.graph.GraphComponentGrid;
+import com.cjburkey.jgraph.prop.Property;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
@@ -11,10 +12,16 @@ import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import javax.swing.JPanel;
 
+@SuppressWarnings("WeakerAccess")
 public class JGraphCanvas extends JPanel {
 
-    public final GraphView graph = new GraphView();
+    public final GraphView graph = new GraphView(this::repaint);
     private ArrayList<GraphComponent> components = new ArrayList<>();
+
+    public final Property<Integer> mouseX = new Property<>();
+    public final Property<Integer> mouseY = new Property<>();
+    public final Property<Integer> lastMouseX = new Property<>();
+    public final Property<Integer> lastMouseY = new Property<>();
 
     public JGraphCanvas() {
         addComponentListener(new ComponentListener() {
@@ -42,10 +49,32 @@ public class JGraphCanvas extends JPanel {
         addMouseMotionListener(new MouseMotionListener() {
             @Override
             public void mouseMoved(MouseEvent e) {
+                updatePos(e.getX(), e.getY());
             }
 
             @Override
             public void mouseDragged(MouseEvent e) {
+                updatePos(e.getX(), e.getY());
+
+                if (!mouseX.has()
+                        || !mouseY.has()
+                        || !lastMouseX.has()
+                        || !lastMouseY.has()) return;
+
+                double xDiff = graph.invTransformW(mouseX.get() - lastMouseX.get());
+                double yDiff = graph.invTransformH(mouseY.get() - lastMouseY.get());
+
+                graph.minX.map(at -> at - xDiff);
+                graph.maxX.map(at -> at - xDiff);
+                graph.minY.map(at -> at - yDiff);
+                graph.maxY.map(at -> at - yDiff);
+            }
+
+            private void updatePos(int x, int y) {
+                lastMouseX.set(mouseX.get());
+                lastMouseY.set(mouseY.get());
+                mouseX.set(x);
+                mouseY.set(y);
             }
         });
         components.add(new GraphComponentGrid());
