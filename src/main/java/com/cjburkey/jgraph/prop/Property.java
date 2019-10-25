@@ -100,9 +100,15 @@ public class Property<T> {
         return listeners.size() - 1;
     }
 
-    public static void listenAll(PropListener<Object> listener, Property<?>... properties) {
+    /**
+     * Attaches the provided listener to all of the provided properties.
+     *
+     * @param listener   The listener to be attached.
+     * @param properties The properties to which the listener should be attached.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void listenAll(PropListener<?> listener, Property<?>... properties) {
         for (Property property : properties) {
-            //noinspection unchecked
             property.listen(listener);
         }
     }

@@ -1,7 +1,7 @@
 package com.cjburkey.jgraph.graph;
 
 import com.cjburkey.jgraph.display.GraphView;
-import java.awt.Color;
+import com.cjburkey.jgraph.display.graphics.Color;
 
 @SuppressWarnings("WeakerAccess")
 public class GraphComponentGrid extends GraphComponent {

@@ -1,9 +1,11 @@
 package com.cjburkey.jgraph.display;
 
+import com.cjburkey.jgraph.display.graphics.AwtGraphics2D;
 import com.cjburkey.jgraph.graph.GraphComponent;
 import com.cjburkey.jgraph.graph.GraphComponentGrid;
 import com.cjburkey.jgraph.prop.Property;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -15,8 +17,9 @@ import javax.swing.JPanel;
 @SuppressWarnings("WeakerAccess")
 public class JGraphCanvas extends JPanel {
 
-    public final GraphView graph = new GraphView(this::repaint);
-    private ArrayList<GraphComponent> components = new ArrayList<>();
+    private final AwtGraphics2D graphics2D = new AwtGraphics2D(null);
+    public final GraphView graph = new GraphView(graphics2D, this::repaint);
+    private final ArrayList<GraphComponent> components = new ArrayList<>();
 
     public final Property<Integer> mouseX = new Property<>();
     public final Property<Integer> mouseY = new Property<>();
@@ -24,14 +27,41 @@ public class JGraphCanvas extends JPanel {
     public final Property<Integer> lastMouseY = new Property<>();
 
     public JGraphCanvas() {
+        addListeners();
+
+        // All graphs have a grid component
+        components.add(new GraphComponentGrid());
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        graphics2D.updateGraphics((Graphics2D) g);
+        graph.clear();
+
+        for (GraphComponent component : components) {
+            if (component.shown) {
+                component.draw(graph);
+            }
+        }
+    }
+
+    private void addListeners() {
         addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
-                // Update the graph size to keep the aspect ratio
-                // Change the Y min/max but keep the X min/max the same
+                // Update the graph size
+                // The `getBounds()` method is updated before `getWidth()` and
+                // `getHeight()` which update after this event is fired.
                 final Rectangle BOUNDS = getBounds();
-                graph.minY.set(BOUNDS.getHeight() / BOUNDS.getWidth() * graph.minX.get());
-                graph.maxY.set(BOUNDS.getHeight() / BOUNDS.getWidth() * graph.maxX.get());
+                graph.updateSize((int) BOUNDS.getWidth(), (int) BOUNDS.getHeight());
+
+                // Update the graph zoom to keep the aspect ratio
+                // Change the Y min/max but keep the X min/max the same
+                double invAspect = 1.0d / graph.getAspect();
+                graph.minY.set(invAspect * graph.minX.get());
+                graph.maxY.set(invAspect * graph.maxX.get());
             }
 
             @Override
@@ -56,42 +86,40 @@ public class JGraphCanvas extends JPanel {
             public void mouseDragged(MouseEvent e) {
                 updatePos(e.getX(), e.getY());
 
+                // If the mouse doesn't have the required position data, skip.
                 if (!mouseX.has()
                         || !mouseY.has()
                         || !lastMouseX.has()
                         || !lastMouseY.has()) return;
 
+                // Calculate the transformed delta position
                 double xDiff = graph.invTransformW(mouseX.get() - lastMouseX.get());
                 double yDiff = graph.invTransformH(mouseY.get() - lastMouseY.get());
 
-                graph.minX.map(at -> at - xDiff);
-                graph.maxX.map(at -> at - xDiff);
-                graph.minY.map(at -> at - yDiff);
-                graph.maxY.map(at -> at - yDiff);
+                // Update the graph bounds
+                graph.minX.map(minX -> minX - xDiff);
+                graph.maxX.map(maxX -> maxX - xDiff);
+                graph.minY.map(minY -> minY - yDiff);
+                graph.maxY.map(maxY -> maxY - yDiff);
             }
 
             private void updatePos(int x, int y) {
+                // Update mouse position cache
                 lastMouseX.set(mouseX.get());
                 lastMouseY.set(mouseY.get());
                 mouseX.set(x);
                 mouseY.set(y);
             }
         });
-        components.add(new GraphComponentGrid());
-    }
+        addMouseWheelListener(e -> {
+            double scrollAmountHalf = e.getWheelRotation() / 2.0d;
+            double aspect = 1.0d / graph.getAspect();
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-
-        graph.updateGraphics(g, getWidth(), getHeight());
-        graph.clear();
-
-        for (GraphComponent component : components) {
-            if (component.shown) {
-                component.draw(graph);
-            }
-        }
+            graph.minX.map(minX -> minX - scrollAmountHalf);
+            graph.maxX.map(maxX -> maxX + scrollAmountHalf);
+            graph.minY.map(minY -> minY - aspect * scrollAmountHalf);
+            graph.maxY.map(maxY -> maxY + aspect * scrollAmountHalf);
+        });
     }
 
 }
