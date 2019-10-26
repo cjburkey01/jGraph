@@ -65,11 +65,33 @@ public class GraphView {
         translateY.set((maxY.get() + minY.get()) / 2.0d);
     }
 
+    /**
+     * Update the size of this graph view.
+     *
+     * @param width  The width of this graph view.
+     * @param height The height of this graph view.
+     */
     public void updateSize(int width, int height) {
         this.width.set(width);
         this.height.set(height);
     }
 
+    /**
+     * Update the offset of this graph view (within the graphics system).
+     *
+     * @param x The X-offset
+     * @param y The Y-offset
+     */
+    public void updateOffset(int x, int y) {
+        offsetX.set(x);
+        offsetY.set(y);
+    }
+
+    /**
+     * Get the aspect ratio of this graph view.
+     *
+     * @return The aspect ratio.
+     */
     public double getAspect() {
         return aspect.get();
     }
@@ -106,18 +128,42 @@ public class GraphView {
         return (loc - size / 2) / zoom + localTranslation;
     }
 
+    /**
+     * Transform a graph X-coordinate to an X-coordinate within the graphic bounds.
+     *
+     * @param x The x-coordinate on the graph.
+     * @return An X-coordinate within the graph bounds.
+     */
     public int transformX(double x) {
         return offsetX.get() + (transform(zoomX.get(), x, translateX.get(), width.get()));
     }
 
+    /**
+     * Transform a graph Y-coordinate to an Y-coordinate within the graphic bounds.
+     *
+     * @param y The y-coordinate on the graph.
+     * @return An Y-coordinate within the graph bounds.
+     */
     public int transformY(double y) {
         return offsetY.get() + (height.get() - transform(zoomY.get(), y, translateY.get(), height.get()));
     }
 
+    /**
+     * Transform a graph width (or position with no offset).
+     *
+     * @param w The width on the graph.
+     * @return A transformed width.
+     */
     public int transformW(double w) {
         return transform(zoomX.get(), w, 0, 0);
     }
 
+    /**
+     * Transform a graph height (or position with no offset).
+     *
+     * @param h The height on the graph.
+     * @return A transformed height.
+     */
     public int transformH(double h) {
         return transform(zoomY.get(), h, 0, 0);
     }
