@@ -20,9 +20,13 @@ public class GraphView {
     private final Property<Double> translateY = new Property<>(0.0d);
 
     // Graphics handling
+    // Graph components should promise never to draw outside of the box defined
+    // from (offsetX, offsetY) to (offsetX+width, offsetY+height).
     private IGraphics g;
     private final Property<Integer> width = new Property<>(0);
     private final Property<Integer> height = new Property<>(0);
+    private final Property<Integer> offsetX = new Property<>(0);
+    private final Property<Integer> offsetY = new Property<>(0);
     private final Property<Double> aspect = new Property<>(0.0d);
 
     public GraphView(IGraphics graphics, Runnable repaint) {
@@ -44,7 +48,7 @@ public class GraphView {
             Property.listenAll((o, n) -> repaint.run(), zoomX, zoomY, translateX, translateY);
         }
 
-        // Default values that will propogate through all the listeners that
+        // Default values that will propagate through all the listeners that
         // were just created.
         minX.set(-5.0d);
         maxX.set(5.0d);
@@ -103,11 +107,11 @@ public class GraphView {
     }
 
     public int transformX(double x) {
-        return transform(zoomX.get(), x, translateX.get(), width.get());
+        return offsetX.get() + (transform(zoomX.get(), x, translateX.get(), width.get()));
     }
 
     public int transformY(double y) {
-        return height.get() - transform(zoomY.get(), y, translateY.get(), height.get());
+        return offsetY.get() + (height.get() - transform(zoomY.get(), y, translateY.get(), height.get()));
     }
 
     public int transformW(double w) {
@@ -125,7 +129,7 @@ public class GraphView {
 
     @SuppressWarnings("unused")
     public double invTransformY(double y) {
-        return invTransform(zoomY.get(), height.get() - y, translateY.get(), height.get());
+        return invTransform(zoomY.get(), height.get() - offsetY.get() - y, translateY.get(), height.get());
     }
 
     public double invTransformW(double w) {
