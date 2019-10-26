@@ -3,6 +3,7 @@ package com.cjburkey.jgraph.display;
 import com.cjburkey.jgraph.display.graphics.AwtGraphics2D;
 import com.cjburkey.jgraph.graph.GraphComponent;
 import com.cjburkey.jgraph.graph.GraphComponentGrid;
+import com.cjburkey.jgraph.graph.GraphComponentLine;
 import com.cjburkey.jgraph.prop.Property;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -31,15 +32,25 @@ public class JGraphCanvas extends JPanel {
 
         // All graphs have a grid component
         components.add(new GraphComponentGrid());
+
+        // Add the line y=1.5x+3.0
+        components.add(new GraphComponentLine(1.5d, 3.0d));
+        // Add the line x=5.0
+        components.add(new GraphComponentLine(5.0d));
     }
 
     @Override
     protected void paintComponent(Graphics g) {
+        // Update the parent (this is important)
         super.paintComponent(g);
 
+        // Update the graphics object
         graphics2D.updateGraphics((Graphics2D) g);
+
+        // Clear the screen
         graph.clear();
 
+        // Draw all the visible components
         for (GraphComponent component : components) {
             if (component.shown) {
                 component.draw(graph);
@@ -94,7 +105,7 @@ public class JGraphCanvas extends JPanel {
 
                 // Calculate the transformed delta position
                 double xDiff = graph.invTransformW(mouseX.get() - lastMouseX.get());
-                double yDiff = graph.invTransformH(mouseY.get() - lastMouseY.get());
+                double yDiff = graph.invTransformH(-(mouseY.get() - lastMouseY.get()));
 
                 // Update the graph bounds
                 graph.minX.map(minX -> minX - xDiff);
@@ -112,13 +123,19 @@ public class JGraphCanvas extends JPanel {
             }
         });
         addMouseWheelListener(e -> {
-            double scrollAmountHalf = e.getWheelRotation() / 2.0d;
+            double scrollAmount = e.getWheelRotation();
+            // Calculate the ratio of the scroll that should occur on the
+            // left/right and top/bottom parts of the graph to allow zooming
+            // to the cursor instead of relative to the center.
+            double scrollMouseX = ((double) mouseX.get() / getWidth()) * scrollAmount;
+            double scrollMouseY = ((double) mouseY.get() / getHeight()) * scrollAmount;
             double aspect = 1.0d / graph.getAspect();
 
-            graph.minX.map(minX -> minX - scrollAmountHalf);
-            graph.maxX.map(maxX -> maxX + scrollAmountHalf);
-            graph.minY.map(minY -> minY - aspect * scrollAmountHalf);
-            graph.maxY.map(maxY -> maxY + aspect * scrollAmountHalf);
+            // Update the graph bounds
+            graph.minX.map(minX -> minX - scrollMouseX);
+            graph.maxX.map(maxX -> maxX + (scrollAmount - scrollMouseX));
+            graph.minY.map(minY -> minY - aspect * (scrollAmount - scrollMouseY));
+            graph.maxY.map(maxY -> maxY + aspect * scrollMouseY);
         });
     }
 

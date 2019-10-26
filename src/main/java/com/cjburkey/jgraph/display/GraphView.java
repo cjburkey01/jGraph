@@ -107,7 +107,7 @@ public class GraphView {
     }
 
     public int transformY(double y) {
-        return transform(zoomY.get(), y, translateY.get(), height.get());
+        return height.get() - transform(zoomY.get(), y, translateY.get(), height.get());
     }
 
     public int transformW(double w) {
@@ -125,7 +125,7 @@ public class GraphView {
 
     @SuppressWarnings("unused")
     public double invTransformY(double y) {
-        return invTransform(zoomY.get(), y, translateY.get(), height.get());
+        return invTransform(zoomY.get(), height.get() - y, translateY.get(), height.get());
     }
 
     public double invTransformW(double w) {
